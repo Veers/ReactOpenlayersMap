@@ -1,13 +1,15 @@
 import 'ol/ol.css';
 import Map from 'ol/Map';
 import View from 'ol/View';
-import TileLayer from 'ol/layer/Tile';
+import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer';
 import {
     OSM,
     TileImage,
     TileWMS,
+    Vector as VectorSource,
     XYZ
 } from 'ol/source'
+import WKT from 'ol/format/WKT';
 import WMTSTileGrid from 'ol/tilegrid/WMTS';
 import {get as getProjection
 } from 'ol/proj';
@@ -45,6 +47,8 @@ class MapInstance {
 
         layers.push(osmLayer)
 
+        var vectorLayer = this.createVectorLayer()
+        layers.push(vectorLayer)
 
         var parser = new WMTSCapabilities();
         var url = 'https://map1.vis.earthdata.nasa.gov/wmts-arctic/' +
@@ -78,6 +82,9 @@ class MapInstance {
                 zoom: 4
             })
         });
+
+        var feature = this.createVectorFeature();
+        this.addVectorFeature(feature)
     }
 
     initializeProjections() {
@@ -120,20 +127,10 @@ class MapInstance {
 
         var proj54009 = getProjection('ESRI:54009');
         proj54009.setExtent([-18e6, -9e6, 18e6, 9e6]);
-        ``
     }
 
     initializeLayers() {
         this.layers = {};
-
-        this.layers['bng'] = new TileLayer({
-            source: new XYZ({
-                projection: 'EPSG:27700',
-                url: 'https://tileserver.maptiler.com/miniscale/{z}/{x}/{y}.png',
-                crossOrigin: '',
-                maxZoom: 6
-            })
-        });
 
         this.layers['osm'] = new TileLayer({
             source: new OSM()
@@ -170,43 +167,16 @@ class MapInstance {
             });
         });
 
-        this.layers['grandcanyon'] = new TileLayer({
-            source: new XYZ({
-                url: 'https://tileserver.maptiler.com/grandcanyon@2x/{z}/{x}/{y}.png',
-                crossOrigin: '',
-                tilePixelRatio: 2,
-                maxZoom: 15,
-                attributions: 'Tiles © USGS, rendered with ' +
-                    '<a href="http://www.maptiler.com/">MapTiler</a>'
-            })
-        });
-
         var startResolution =
             getWidth(getProjection('EPSG:3857').getExtent()) / 256;
         var resolutions = new Array(22);
         for (var i = 0, ii = resolutions.length; i < ii; ++i) {
             resolutions[i] = startResolution / Math.pow(2, i);
         }
-
-       this.layers['states'] = new TileLayer({
-            source: new TileWMS({
-                url: 'https://ahocevar.com/geoserver/wms',
-                crossOrigin: '',
-                params: {
-                    'LAYERS': 'topp:states'
-                },
-                serverType: 'geoserver',
-                tileGrid: new TileGrid({
-                    extent: [-13884991, 2870341, -7455066, 6338219],
-                    resolutions: resolutions,
-                    tileSize: [512, 256]
-                }),
-                projection: 'EPSG:3857'
-            })
-        });
     }
 
     changeProjection(newProjection) {
+        let oldProjection = this.mapInstance.getView().getProjection().getCode()
         var newProj = getProjection(newProjection);
         var newProjExtent = newProj.getExtent();
         var newView = new View({
@@ -216,6 +186,7 @@ class MapInstance {
             extent: newProjExtent || undefined
         });
         this.mapInstance.setView(newView);
+        this.transformVectorFeatures(oldProjection, newProjection);
 
         // if (newProj == getProjection('EPSG:3857')) {
         //   layers['bng'].setExtent([-1057216, 6405988, 404315, 8759696]);
@@ -273,6 +244,15 @@ class MapInstance {
             if (layer.get('name') === 'wmtsLayer') {
                 layer.set('visible', visibility)
             }
+        })
+    }
+
+    createVectorLayer() {
+        return new VectorLayer({
+            source: new VectorSource({
+                features: []
+            }),
+            name: 'featureLayer'
         })
     }
 
@@ -369,12 +349,35 @@ class MapInstance {
         })
     }
 
-    getMap() {
-
+    createVectorFeature() {
+        var wkt = polygons[1];
+        var format = new WKT()
+        var feature = format.readFeature(wkt, {
+            dataProjection: 'EPSG:4326',
+            featureProjection: 'EPSG:3857'
+        })
+        return feature
     }
 
-    addPolygon(index) {
-        console.log(polygons)
+    addVectorFeature(feature) {
+        var layers = this.mapInstance.getLayers();
+        layers.forEach(function(layer){
+            if (layer.get('name')==='featureLayer') {
+                layer.getSource().addFeature(feature);
+            }
+        })
+        
+    }
+
+    transformVectorFeatures(oldProjection, newProjection) {
+        var layers = this.mapInstance.getLayers();
+        layers.forEach(function(layer){
+            if (layer.get('name')==='featureLayer') {
+                layer.getSource().forEachFeature(function(feature){
+                    feature.getGeometry().transform(oldProjection, newProjection);
+                });
+            }
+        })
     }
 }
 
