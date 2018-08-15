@@ -11,6 +11,7 @@ class App extends Component {
   	}
   	this.changeProjection = this.changeProjection.bind(this)
   	this.changeLayerVisibility = this.changeLayerVisibility.bind(this)
+    this.zoomToFeatures = this.zoomToFeatures.bind(this)
   }
 
   // changeProjection = () => {
@@ -27,12 +28,16 @@ class App extends Component {
     this.setState({layers: l})
   }
 
+  zoomToFeatures = () => {
+
+  }
+
   render() {
     return (
       <div>
         <div id="map" className="App">
         </div>
-        <MapAdapther projection={this.state.currentProjection} layers={this.state.layers}/>
+        <MapAdapther projection={this.state.currentProjection} layers={this.state.layers} functions={this.zoomToFeatures}/>
         <br/>
         <label>View projection:</label>
         <select id="view-projection" onChange={this.changeProjection}>
@@ -47,6 +52,8 @@ class App extends Component {
         <button onClick={(e)=>this.changeLayerVisibility('wms', e)}>WMS слой</button>&nbsp;{String(this.state.layers['wms'])}
         <br/><br/>
         <button onClick={(e)=>this.changeLayerVisibility('wmts', e)}>WMTS слой</button>&nbsp;{String(this.state.layers['wmts'])}
+        <br/><br/>
+        <button onClick={this.zoomToFeatures}>Zoom to features</button>
       </div>
     );
   }
