@@ -4,7 +4,6 @@ import View from 'ol/View';
 import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer';
 import {
     OSM,
-    TileImage,
     TileWMS,
     Vector as VectorSource,
     XYZ
@@ -25,7 +24,6 @@ import {
 import WMTS, {
     optionsFromCapabilities
 } from 'ol/source/WMTS';
-import TileGrid from 'ol/tilegrid/TileGrid.js';
 import proj4 from 'proj4';
 
 import {
