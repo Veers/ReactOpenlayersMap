@@ -14,10 +14,10 @@ export const featuresData = [{
             "resolution": 11.845,
             "abstract": "Космический cнимок со СУ КШМСА-ВР КА Ресурс-П2 уровня обработки 0",
             "previews": [{
-                "file_name": "http://www.gptl.ru/previews/Resurs-P2/2017/12/10103911_1.png",
+                "file_name": "https://www.gptl.ru/previews/Resurs-P2/2017/12/10103911_1.png",
                 "polygon": "MULTIPOLYGON(((83.8102542728727 53.4493886807706,85.5643668880536 53.4493886807706,85.5643668880536 52.3884120314602,83.8102542728727 52.3884120314602,83.8102542728727 53.4493886807706)))"
             }, {
-                "file_name": "http://www.gptl.ru/previews/Resurs-P2/2017/12/10103911_2.png",
+                "file_name": "https://www.gptl.ru/previews/Resurs-P2/2017/12/10103911_2.png",
                 "polygon": "MULTIPOLYGON(((83.4999954331873 52.6062706181674,85.1906303800313 52.6062706181674,85.1906303800313 51.6123375991011,83.4999954331873 51.6123375991011,83.4999954331873 52.6062706181674)))"
             }],
             "date_instant": null,
@@ -123,10 +123,10 @@ export const featuresData = [{
             "resolution": 11.843,
             "abstract": "Космический cнимок со СУ КШМСА-ВР КА Ресурс-П2 уровня обработки 0",
             "previews": [{
-                "file_name": "http://www.gptl.ru/previews/Resurs-P2/2017/12/10103996_1.png",
+                "file_name": "https://www.gptl.ru/previews/Resurs-P2/2017/12/10103996_1.png",
                 "polygon": "MULTIPOLYGON(((84.7750652694291 56.1279268975274,86.6554085015044 56.1279268975274,86.6554085015044 55.0621305005073,84.7750652694291 55.0621305005073,84.7750652694291 56.1279268975274)))"
             }, {
-                "file_name": "http://www.gptl.ru/previews/Resurs-P2/2017/12/10103996_2.png",
+                "file_name": "https://www.gptl.ru/previews/Resurs-P2/2017/12/10103996_2.png",
                 "polygon": "MULTIPOLYGON(((84.4341862638055 55.2868953528938,86.2427851333094 55.2868953528938,86.2427851333094 54.2884096525321,84.4341862638055 54.2884096525321,84.4341862638055 55.2868953528938)))"
             }],
             "date_instant": null,

@@ -12,6 +12,7 @@ import {
     XYZ
 } from 'ol/source'
 import WKT from 'ol/format/WKT';
+import FeatureFormat from 'ol/format/Feature';
 import WMTSTileGrid from 'ol/tilegrid/WMTS';
 import {get as getProjection
 } from 'ol/proj';
@@ -412,15 +413,23 @@ class MapInstance {
     }
 
     createImageFeature(previews, feature) {
+        var format = new WKT()        
         for (let i = 0; i<previews.length; i++){
             let preview = previews[i];
             console.log(preview.file_name)
 
+            let vectorFeature = format.readFeature(preview.polygon, {
+                dataProjection: 'EPSG:4326',
+                featureProjection: 'EPSG:3857'
+            })
+
             let layer = new VectorLayer({
                 renderMode: 'image',
                 features: feature,
+                extent: vectorFeature.getGeometry().getExtent(),
                 source: new VectorSource({
-                    url: preview.file_name
+                    format: new FeatureFormat(),
+                    url: './public/10103996_2.png'
                 })
             })
 
