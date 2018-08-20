@@ -1,7 +1,10 @@
 import 'ol/ol.css';
 import Map from 'ol/Map';
 import View from 'ol/View';
-import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer';
+import {
+    Tile as TileLayer,
+    Vector as VectorLayer
+} from 'ol/layer';
 import {
     OSM,
     TileWMS,
@@ -24,6 +27,7 @@ import {
 import WMTS, {
     optionsFromCapabilities
 } from 'ol/source/WMTS';
+import {Style} from 'ol/style.js';
 import proj4 from 'proj4';
 
 import {
@@ -44,7 +48,7 @@ class MapInstance {
         })
 
         layers.push(osmLayer)
-
+        
         var vectorLayer = this.createVectorLayer()
         layers.push(vectorLayer)
 
@@ -81,8 +85,8 @@ class MapInstance {
             })
         });
 
-        var feature = this.createVectorFeature();
-        this.addVectorFeature(feature)
+        // var feature = this.createVectorFeature();
+        // this.addVectorFeature(feature)
     }
 
     initializeProjections() {
@@ -245,6 +249,33 @@ class MapInstance {
         })
     }
 
+    createLandsatLayer() {
+        //https://gptl.ru/coverages/images_landsat/4/0010-1010.jpg
+        return new TileLayer({
+            source: new XYZ({
+                tileUrlFunction(tileCoord, pixelRatio, projection) {
+                    var z = tileCoord[0].toString();
+
+        // add the part /1/1-0.jpg, --> {z}/{x}-{y}.jpg
+                    let path = 'https://gptl.ru/coverages/images_landsat';
+                    path += '/' + z + '/';
+
+                    var textX = tileCoord[1].toString(2);
+                    while (textX.length < tileCoord[0]) textX = '0' + textX;
+
+                    var textY = tileCoord[2].toString(2);
+                    while (textY.length < tileCoord[0]) textY = '0' + textY;
+
+                    for (var i = 6; i < tileCoord[0]; i++)
+                        path += textY.substr(0, i - 5) + '-' + textX.substr(0, i - 5) + '/';
+
+                    path += textY + '-' + textX + '.jpg';
+                    return path;
+                }
+            })
+        })
+    }
+
     createVectorLayer() {
         return new VectorLayer({
             source: new VectorSource({
@@ -347,35 +378,86 @@ class MapInstance {
         })
     }
 
-    createVectorFeature() {
-        var wkt = polygons[1];
+    createVectorFeature(wktPolygon, visibility) {
+        let wkt = wktPolygon ? wktPolygon : polygons[1];
         var format = new WKT()
         var feature = format.readFeature(wkt, {
             dataProjection: 'EPSG:4326',
-            featureProjection: 'EPSG:3857'
+            featureProjection: 'EPSG:3857',
+            visibility: visibility
         })
+        feature.setStyle(new Style({}));
         return feature
     }
 
     addVectorFeature(feature) {
         var layers = this.mapInstance.getLayers();
-        layers.forEach(function(layer){
-            if (layer.get('name')==='featureLayer') {
+        layers.forEach(function(layer) {
+            if (layer.get('name') === 'featureLayer') {
                 layer.getSource().addFeature(feature);
             }
         })
-        
+
     }
 
     transformVectorFeatures(oldProjection, newProjection) {
         var layers = this.mapInstance.getLayers();
-        layers.forEach(function(layer){
-            if (layer.get('name')==='featureLayer') {
-                layer.getSource().forEachFeature(function(feature){
+        layers.forEach(function(layer) {
+            if (layer.get('name') === 'featureLayer') {
+                layer.getSource().forEachFeature(function(feature) {
                     feature.getGeometry().transform(oldProjection, newProjection);
                 });
             }
         })
+    }
+
+    createImageFeature(previews, feature) {
+        for (let i = 0; i<previews.length; i++){
+            let preview = previews[i];
+            console.log(preview.file_name)
+
+            let layer = new VectorLayer({
+                renderMode: 'image',
+                features: feature,
+                source: new VectorSource({
+                    url: preview.file_name
+                })
+            })
+
+            this.mapInstance.addLayer(layer)
+
+        }
+    }
+
+    addImageFeature(imageFeature) {
+
+    }    
+
+    drawFeatures(features, featuresData) {
+        for (let i = 0; i<featuresData.length; i++) {
+            let values = Object.values(featuresData[i].data)
+            let wktPolygon = values[0].polygon
+            let previews = values[0].previews
+            let contourFeature = this.createVectorFeature(wktPolygon, features[i].contour)
+            this.addVectorFeature(contourFeature)
+
+            this.addImageFeature(this.createImageFeature(previews, contourFeature))
+        }
+    }
+
+    updateFeatures(features) {
+        let layer = null;
+        let layersArray = this.mapInstance.getLayers().getArray();
+        for (let i = 0; i<layersArray.length; i++) {
+            if (layersArray[i].get('name') === "featureLayer")
+                layer = layersArray[i];
+        }
+
+
+        for (var i=0; i<features.length; i++) {
+            let feature = features[i]
+            layer.get('source').getFeatures()[i].setStyle(feature.contour ? null : new Style({}))
+        }
     }
 }
 

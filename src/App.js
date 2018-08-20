@@ -2,16 +2,19 @@ import React, { Component } from 'react';
 import './App.css';
 import MapAdapther from './MapAdapther';
 
+import {featuresData} from './Features';
+
 class App extends Component {
   constructor(props) {
   	super(props)
   	this.state = {
   		currentProjection: "EPSG:3857",
-  		layers: {'xyz': false, 'wms': false, 'wmts': false}
+  		layers: {'xyz': false, 'wms': false, 'wmts': false},
+      features: [{'contour': false, 'image': false}, {'contour': false, 'image': false}],
+      featuresData: featuresData
   	}
   	this.changeProjection = this.changeProjection.bind(this)
   	this.changeLayerVisibility = this.changeLayerVisibility.bind(this)
-    this.zoomToFeatures = this.zoomToFeatures.bind(this)
   }
 
   // changeProjection = () => {
@@ -28,16 +31,26 @@ class App extends Component {
     this.setState({layers: l})
   }
 
-  zoomToFeatures = () => {
+  changeContourVisibility = (index, e) => {
+    let newFeatures = this.state.features.slice()
+    newFeatures[index].contour = !newFeatures[index].contour
+    this.setState({features: newFeatures})
 
   }
 
+  changeImageVisibility = (index, e) => {
+    let newFeatures = this.state.features.slice()
+    newFeatures[index].image = !newFeatures[index].image
+    this.setState({features: newFeatures})
+  }
+
   render() {
+    let features = this.state.features
     return (
       <div>
         <div id="map" className="App">
         </div>
-        <MapAdapther projection={this.state.currentProjection} layers={this.state.layers} functions={this.zoomToFeatures}/>
+        <MapAdapther projection={this.state.currentProjection} layers={this.state.layers} features={this.state.features} featuresData={this.state.featuresData}/>
         <br/>
         <label>View projection:</label>
         <select id="view-projection" onChange={this.changeProjection}>
@@ -52,8 +65,13 @@ class App extends Component {
         <button onClick={(e)=>this.changeLayerVisibility('wms', e)}>WMS слой</button>&nbsp;{String(this.state.layers['wms'])}
         <br/><br/>
         <button onClick={(e)=>this.changeLayerVisibility('wmts', e)}>WMTS слой</button>&nbsp;{String(this.state.layers['wmts'])}
-        <br/><br/>
-        <button onClick={this.zoomToFeatures}>Zoom to features</button>
+        <br/><br/>  
+        {features.map((name, index) => (
+          <div key={index+name.image.toString(2)}> feature: {index} &nbsp;
+            <button onClick={(e) => this.changeContourVisibility(index, e)}>контур: {name.contour.toString()}</button>
+            <button onClick={(e) => this.changeImageVisibility(index, e)}>изборажение: {name.image.toString()}</button><br/><br/>
+          </div>
+        ))}
       </div>
     );
   }

@@ -7,11 +7,13 @@ class MapAdapther extends Component {
 
     static propTypes = {
         projection: PropTypes.string.isRequired,
-        layers: PropTypes.object.isRequired
+        layers: PropTypes.object.isRequired,
+        features: PropTypes.array.isRequired
     }
 
     componentDidMount = () => {
         this.map = new MapInstance(this.props.projection);
+        this.map.drawFeatures(this.props.features, this.props.featuresData);
     }
 
     componentDidUpdate = (prevProps, prevState, snapshot) => {
@@ -22,9 +24,13 @@ class MapAdapther extends Component {
         if (this.props.layers !== prevProps.layers){
             this.map.updateLayers(this.props.layers)
         }
+
+        if (this.props.features !== prevProps.features) {
+            this.map.updateFeatures(this.props.features)
+        }
     }
 
-    render() {
+    render() {    
         return false
     }
 }
