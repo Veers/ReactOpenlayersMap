@@ -28,7 +28,11 @@ import {
 import WMTS, {
     optionsFromCapabilities
 } from 'ol/source/WMTS';
-import {Style} from 'ol/style.js';
+import Static from 'ol/source/ImageStatic.js';
+import ImageLayer from 'ol/layer/Image.js';
+import {
+    Style
+} from 'ol/style.js';
 import proj4 from 'proj4';
 
 import {
@@ -49,7 +53,7 @@ class MapInstance {
         })
 
         layers.push(osmLayer)
-        
+
         var vectorLayer = this.createVectorLayer()
         layers.push(vectorLayer)
 
@@ -81,7 +85,7 @@ class MapInstance {
             layers: layers,
             view: new View({
                 projection: mapProjection,
-                center: [0, 0],
+                center: [10000000, 9000000],
                 zoom: 4
             })
         });
@@ -257,7 +261,7 @@ class MapInstance {
                 tileUrlFunction(tileCoord, pixelRatio, projection) {
                     var z = tileCoord[0].toString();
 
-        // add the part /1/1-0.jpg, --> {z}/{x}-{y}.jpg
+                    // add the part /1/1-0.jpg, --> {z}/{x}-{y}.jpg
                     let path = 'https://gptl.ru/coverages/images_landsat';
                     path += '/' + z + '/';
 
@@ -413,8 +417,8 @@ class MapInstance {
     }
 
     createImageFeature(previews, feature) {
-        var format = new WKT()        
-        for (let i = 0; i<previews.length; i++){
+        var format = new WKT()
+        for (let i = 0; i < previews.length; i++) {
             let preview = previews[i];
             console.log(preview.file_name)
 
@@ -429,21 +433,34 @@ class MapInstance {
                 extent: vectorFeature.getGeometry().getExtent(),
                 source: new VectorSource({
                     format: new FeatureFormat(),
-                    url: './public/10103996_2.png'
+                    url: '/10103996_2.png'
                 })
             })
 
-            this.mapInstance.addLayer(layer)
+            
+            let pro = this.mapInstance.getView().getProjection();
+            let il = new ImageLayer({
+                source: new Static({
+                    attributions: '© <a href="http://xkcd.com/license.html">xkcd</a>',
+                    url: '/10103996_2.png',
+                    projection: pro,
+                    imageExtent: vectorFeature.getGeometry().getExtent()
+                })
+            })
+
+
+            this.mapInstance.addLayer(il)
+            // this.mapInstance.addLayer(layer)
 
         }
     }
 
     addImageFeature(imageFeature) {
 
-    }    
+    }
 
     drawFeatures(features, featuresData) {
-        for (let i = 0; i<featuresData.length; i++) {
+        for (let i = 0; i < featuresData.length; i++) {
             let values = Object.values(featuresData[i].data)
             let wktPolygon = values[0].polygon
             let previews = values[0].previews
@@ -457,13 +474,13 @@ class MapInstance {
     updateFeatures(features) {
         let layer = null;
         let layersArray = this.mapInstance.getLayers().getArray();
-        for (let i = 0; i<layersArray.length; i++) {
+        for (let i = 0; i < layersArray.length; i++) {
             if (layersArray[i].get('name') === "featureLayer")
                 layer = layersArray[i];
         }
 
 
-        for (var i=0; i<features.length; i++) {
+        for (var i = 0; i < features.length; i++) {
             let feature = features[i]
             layer.get('source').getFeatures()[i].setStyle(feature.contour ? null : new Style({}))
         }
