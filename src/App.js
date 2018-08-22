@@ -10,11 +10,12 @@ class App extends Component {
   	this.state = {
   		currentProjection: "EPSG:3857",
   		layers: {'xyz': false, 'wms': false, 'wmts': false},
-      features: [{'contour': false, 'image': false}, {'contour': false, 'image': false}],
+      features: [{id: 10103911, 'contour': false, 'image': false}, {id: 10103996, 'contour': false, 'image': false}],
       featuresData: featuresData
   	}
   	this.changeProjection = this.changeProjection.bind(this)
   	this.changeLayerVisibility = this.changeLayerVisibility.bind(this)
+    this.zoomToFeature = this.zoomToFeature.bind(this)
   }
 
   // changeProjection = () => {
@@ -44,6 +45,10 @@ class App extends Component {
     this.setState({features: newFeatures})
   }
 
+  zoomToFeature = (index, e) => {
+    console.log(index)
+  }
+
   render() {
     let features = this.state.features
     return (
@@ -69,7 +74,8 @@ class App extends Component {
         {features.map((name, index) => (
           <div key={index+name.image.toString(2)}> feature: {index} &nbsp;
             <button onClick={(e) => this.changeContourVisibility(index, e)}>контур: {name.contour.toString()}</button>
-            <button onClick={(e) => this.changeImageVisibility(index, e)}>изборажение: {name.image.toString()}</button><br/><br/>
+            <button onClick={(e) => this.changeImageVisibility(index, e)}>изборажение: {name.image.toString()}</button>
+            <button onClick={(e) => this.zoomToFeature(name.id, e)}>Приблизить</button><br/><br/>
           </div>
         ))}
       </div>

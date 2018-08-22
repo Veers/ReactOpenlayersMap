@@ -22,6 +22,7 @@ import {
     getCenter
 } from 'ol/extent'
 import WMTSCapabilities from 'ol/format/WMTSCapabilities'
+import Collection from 'ol/Collection';
 import {
     register
 } from 'ol/proj/proj4';
@@ -30,6 +31,7 @@ import WMTS, {
 } from 'ol/source/WMTS';
 import Static from 'ol/source/ImageStatic.js';
 import ImageLayer from 'ol/layer/Image.js';
+import LayerGroup from 'ol/layer/Group';
 import {
     Style
 } from 'ol/style.js';
@@ -418,6 +420,11 @@ class MapInstance {
 
     createImageFeature(previews, feature) {
         var format = new WKT()
+        let layersCollection = new Collection()
+        let featureGroup = new LayerGroup({
+            extent: feature.getGeometry().getExtent(),
+            layerGroupId: previews[0].id
+        })
         for (let i = 0; i < previews.length; i++) {
             let preview = previews[i];
             console.log(preview.file_name)
@@ -426,33 +433,24 @@ class MapInstance {
                 dataProjection: 'EPSG:4326',
                 featureProjection: 'EPSG:3857'
             })
-
-            let layer = new VectorLayer({
-                renderMode: 'image',
-                features: feature,
-                extent: vectorFeature.getGeometry().getExtent(),
-                source: new VectorSource({
-                    format: new FeatureFormat(),
-                    url: '/10103996_2.png'
-                })
-            })
-
             
             let pro = this.mapInstance.getView().getProjection();
             let il = new ImageLayer({
                 source: new Static({
                     attributions: '© <a href="http://xkcd.com/license.html">xkcd</a>',
-                    url: '/10103996_2.png',
+                    //url: '/10103996_'+(i+1)+'.png',
+                    url: '/' + preview.file_name.split('/')[preview.file_name.split('/').length - 1],
                     projection: pro,
                     imageExtent: vectorFeature.getGeometry().getExtent()
-                })
+                }),
+                visible: false
             })
 
-
-            this.mapInstance.addLayer(il)
-            // this.mapInstance.addLayer(layer)
-
+            layersCollection.push(il)
+                // this.mapInstance.addLayer(layer)
         }
+        featureGroup.setLayers(layersCollection)
+        this.mapInstance.addLayer(featureGroup)
     }
 
     addImageFeature(imageFeature) {
@@ -467,7 +465,8 @@ class MapInstance {
             let contourFeature = this.createVectorFeature(wktPolygon, features[i].contour)
             this.addVectorFeature(contourFeature)
 
-            this.addImageFeature(this.createImageFeature(previews, contourFeature))
+            // this.addImageFeature(this.createImageFeature(previews, contourFeature))
+            this.createImageFeature(previews, contourFeature)
         }
     }
 
@@ -483,6 +482,15 @@ class MapInstance {
         for (var i = 0; i < features.length; i++) {
             let feature = features[i]
             layer.get('source').getFeatures()[i].setStyle(feature.contour ? null : new Style({}))
+            const visibility = feature.image
+            let id = feature.id;
+            for (let i = 0; i < layersArray.length; i++) {
+                if (layersArray[i].get('layerGroupId') === id) {
+                    layersArray[i].getLayers().forEach(function(layer, index, array){
+                        layer.setVisible(visibility)
+                    })
+                }
+            }
         }
     }
 }
