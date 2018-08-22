@@ -12,7 +12,6 @@ import {
     XYZ
 } from 'ol/source'
 import WKT from 'ol/format/WKT';
-import FeatureFormat from 'ol/format/Feature';
 import WMTSTileGrid from 'ol/tilegrid/WMTS';
 import {get as getProjection
 } from 'ol/proj';
@@ -433,7 +432,7 @@ class MapInstance {
                 dataProjection: 'EPSG:4326',
                 featureProjection: 'EPSG:3857'
             })
-            
+
             let pro = this.mapInstance.getView().getProjection();
             let il = new ImageLayer({
                 source: new Static({
