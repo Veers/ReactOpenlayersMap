@@ -22,7 +22,7 @@ class App extends Component {
   // 	(this.state.currentProjection === "EPSG:4326") ? this.setState({currentProjection: "EPSG:3857"}) : this.setState({currentProjection: "EPSG:4326"})
   // }
 
-  changeProjection = (event) => {
+  changeProjection = (event) => {0
     this.setState({currentProjection: event.target.value})
   }
 
@@ -47,6 +47,7 @@ class App extends Component {
 
   zoomToFeature = (index, e) => {
     console.log(index)
+    console.log(e)
   }
 
   render() {
@@ -75,7 +76,6 @@ class App extends Component {
           <div key={index+name.image.toString(2)}> feature: {index} &nbsp;
             <button onClick={(e) => this.changeContourVisibility(index, e)}>контур: {name.contour.toString()}</button>
             <button onClick={(e) => this.changeImageVisibility(index, e)}>изборажение: {name.image.toString()}</button>
-            <button onClick={(e) => this.zoomToFeature(name.id, e)}>Приблизить</button><br/><br/>
           </div>
         ))}
       </div>

@@ -450,6 +450,7 @@ class MapInstance {
         }
         featureGroup.setLayers(layersCollection)
         this.mapInstance.addLayer(featureGroup)
+        this.mapInstance.getView().fit(feature.getGeometry().getExtent())
     }
 
     addImageFeature(imageFeature) {
