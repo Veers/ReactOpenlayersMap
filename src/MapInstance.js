@@ -55,8 +55,16 @@ class MapInstance {
 
         layers.push(osmLayer)
 
-        var vectorLayer = this.createVectorLayer()
-        layers.push(vectorLayer)
+        // let wmsLayer = this.createWMSLayer()
+        // layers.push(wmsLayer)
+
+        let wmtsLayer = this.createWMTSLayer();
+        let wmtsFeatureLayer = this.createWMTSFeatureLayer();
+        let vectorLayer = this.createVectorLayer();
+
+        layers.push(wmtsFeatureLayer);
+        layers.push(wmtsLayer);
+        // layers.push(vectorLayer);
 
         var parser = new WMTSCapabilities();
         var url = 'https://map1.vis.earthdata.nasa.gov/wmts-arctic/' +
@@ -80,18 +88,74 @@ class MapInstance {
         // var wmsLayer = this.createWMSLayer();
         // var wmtsLayer = this.createWMTSLayer();
 
+        this.view = new View({
+            projection: mapProjection,
+            center: [10000000, 9000000],
+            zoom: 4
+        });
+
         this.mapInstance = new Map({
             target: 'map',
             // layers: [osmLayer, xyzLayer, wmsLayer, wmtsLayer],
             layers: layers,
-            view: new View({
-                projection: mapProjection,
-                center: [10000000, 9000000],
-                zoom: 4
-            })
+            view: this.view
         });
 
-        // var feature = this.createVectorFeature();
+        console.log(this.wmsSource)
+
+        let onClickFunction = function(evt) {
+            // http://tb-autotransforming.sec45.ccr.dep4.niitp:8080/geoserver/cite/wms?
+            // SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&FORMAT=image%2Fpng&TRANSPARENT=true&
+            // QUERY_LAYERS=cite%3Amosaic1_metadata&STYLES&LAYERS=cite%3Amosaic1_metadata&INFO_FORMAT=text%2Fhtml&FEATURE_COUNT=50&X=50&Y=50&
+            // SRS=EPSG%3A3857&WIDTH=101&HEIGHT=101&BBOX=8299709.20777724%2C1524585.9716376204%2C8793245.051159931%2C2018121.8150203119
+            // document.getElementById('info').innerHTML = '';
+
+            let wurl = 'http://tb-autotransforming.sec45.ccr.dep4.niitp:8080/geoserver/cite/wms';
+            // let format = 'image/jpeg';
+            // let version = '1.0.0';
+
+
+            const wmsSource = new TileWMS({
+                url: wurl,
+                params: {
+                    'LAYERS': 'cite:mosaic1_metadata',
+                    'TILED': true
+                },
+                serverType: 'geoserver',
+                crossOrigin: 'anonymous'
+            });
+
+            let viewResolution = /** @type {number} */ (this.getView().getResolution());
+            let url = wmsSource.getGetFeatureInfoUrl(
+                evt.coordinate, viewResolution, 'EPSG:3857', {
+                    'INFO_FORMAT': 'application/json'
+                });
+            console.log(url)
+            fetch(url).then(function(response) {
+                return response.json()
+            }).then(function(json) {
+                return json.features
+            }).then(function(features) {
+                features.forEach(function(feature) {
+                    let featuresDiv = document.querySelector('#features')
+                    let featureTag = document.createElement('div')
+                    let text = "id: " + feature['id']
+                    let featureProperties = feature['properties']
+                    for (var key in featureProperties) {
+                        text += "<br/>" + key + ": " + featureProperties[key]
+                    }
+                    featuresDiv.innerHTML = text;
+                })
+            }).catch(alert);
+            // if (url) {
+            //     document.getElementById('info').innerHTML =
+            //         '<iframe seamless src="' + url + '"></iframe>';
+            // }
+        }
+
+        this.mapInstance.on('singleclick', onClickFunction);
+
+        // var feature = this.createVectorFeature();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
         // this.addVectorFeature(feature)
     }
 
@@ -196,7 +260,6 @@ class MapInstance {
         this.mapInstance.setView(newView);
         this.transformVectorFeatures(oldProjection, newProjection);
 
-        // if (newProj == getProjection('EPSG:3857')) {
         //   layers['bng'].setExtent([-1057216, 6405988, 404315, 8759696]);
         // } else {
         //   layers['bng'].setExtent(undefined);
@@ -258,6 +321,7 @@ class MapInstance {
     createLandsatLayer() {
         //https://gptl.ru/coverages/images_landsat/4/0010-1010.jpg
         return new TileLayer({
+
             source: new XYZ({
                 tileUrlFunction(tileCoord, pixelRatio, projection) {
                     var z = tileCoord[0].toString();
@@ -310,6 +374,14 @@ class MapInstance {
     }
 
     createWMSLayer() {
+
+
+        // https://gptl.ru/wms/mm1_msu/service?TRANSPARENT=TRUE&FORMAT=image%2Fpng&INFO_FORMAT=application%2Fvnd.ogc.gml&SERVICE=WMS&
+        // VERSION=1.1.1&REQUEST=GetMap&STYLES=%2C&LAYERS=imageries%2Cboundaries&QUERY_LAYERS=imageries,boundaries&SRS=EPSG%3A3857&
+        // BBOX=7514065.6275,12523442.7125,10018754.17,15028131.255&WIDTH=256&HEIGHT=256
+
+
+
         var wmsSource = new TileWMS({
             url: 'https://ahocevar.com/geoserver/wms',
             params: {
@@ -350,38 +422,83 @@ class MapInstance {
     }
 
     createWMTSLayer() {
-        var projection = getProjection('EPSG:3857');
+
+        // http://tb-autotransforming.sec45.ccr.dep4.niitp:8080/geoserver/gwc/service/wmts?layer=cite%3Amosaic1&
+        // style=&tilematrixset=EPSG%3A900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fjpeg&
+        // TileMatrix=EPSG%3A900913%3A7&TileCol=94&TileRow=59
+
+        // http://tb-autotransforming.sec45.ccr.dep4.niitp:8080/geoserver/cite/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST
+        // =GetFeatureInfo&FORMAT=image%2Fgif&TRANSPARENT=true&QUERY_LAYERS=cite%3Amosaic1_metadata&STYLES&
+        // LAYERS=cite%3Amosaic1_metadata&INFO_FORMAT=text%2Fhtml&FEATURE_COUNT=50&X=50&
+        // Y=50&SRS=EPSG%3A3857&WIDTH=101&HEIGHT=101&BBOX=8028508.818591702%2C1045709.6087514443%2C9015580.505357085%2C2032781.2955168271
+
+
+        //EPSG%3A900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fjpeg&TileMatrix=EPSG%3A900913%3A6&TileCol=45&TileRow=29
+        //EPSG%3A900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fjpeg&TileMatrix=8&TileCol=185&TileRow=79
+
+
+        let url = 'http://tb-autotransforming.sec45.ccr.dep4.niitp:8080/geoserver/gwc/service/wmts';
+        let format = 'image/png';
+        // let version = '1.0.0';
+
+
+        var projection = getProjection('EPSG:900913');
         var projectionExtent = projection.getExtent();
         var size = getWidth(projectionExtent) / 256;
         var resolutions = new Array(14);
         var matrixIds = new Array(14);
         for (var z = 0; z < 14; ++z) {
             resolutions[z] = size / Math.pow(2, z);
-            matrixIds[z] = z;
+            matrixIds[z] = 'EPSG:900913:' + z;
         }
 
 
         return new TileLayer({
-            opacity: 0.7,
+            // opacity: 0.0,
             source: new WMTS({
-                attributions: 'Tiles © <a href="https://services.arcgisonline.com/arcgis/rest/' +
-                    'services/Demographics/USA_Population_Density/MapServer/">ArcGIS</a>',
-                url: 'https://services.arcgisonline.com/arcgis/rest/' +
-                    'services/Demographics/USA_Population_Density/MapServer/WMTS/',
-                layer: '0',
-                matrixSet: 'EPSG:3857',
-                format: 'image/png',
+                attributions: '',
+                url: url,
+                layer: 'cite:mosaic1',
+                matrixSet: 'EPSG:900913',
+                format: format,
                 projection: projection,
+                crossOrigin: 'Access-Control-Allow-Origin',
+                // crossOrigin: 'anonymous',
                 tileGrid: new WMTSTileGrid({
                     origin: getTopLeft(projectionExtent),
                     resolutions: resolutions,
                     matrixIds: matrixIds
                 }),
-                style: 'default',
+                style: '',
                 wrapX: true
             }),
             name: 'wmtsLayer'
         })
+    }
+
+    createWMTSFeatureLayer() {
+        // http://tb-autotransforming.sec45.ccr.dep4.niitp:8080/geoserver/cite/wms?SERVICE=WMS&
+        // VERSION=1.1.1&REQUEST=GetMap&FORMAT=image%2Fpng&TRANSPARENT=true&STYLES&LAYERS=cite%3Amosaic1_metadata&SRS=EPSG%3A3857&WIDTH=769&
+        // HEIGHT=553&BBOX=5336050.900731673%2C-908887.790783966%2C20347358.929163635%2C9900035.82864686
+
+        let url = 'http://tb-autotransforming.sec45.ccr.dep4.niitp:8080/geoserver/cite/wms';
+        // let format = 'image/jpeg';
+        // let version = '1.0.0';
+
+
+        this.wmsSource = new TileWMS({
+            url: url,
+            params: {
+                'LAYERS': 'cite:mosaic1_metadata',
+                'TILED': true
+            },
+            serverType: 'geoserver',
+            crossOrigin: 'anonymous'
+        });
+
+        return new TileLayer({
+            source: this.wmsSource
+        });
     }
 
     createVectorFeature(wktPolygon, visibility) {
@@ -450,7 +567,7 @@ class MapInstance {
         }
         featureGroup.setLayers(layersCollection)
         this.mapInstance.addLayer(featureGroup)
-        this.mapInstance.getView().fit(feature.getGeometry().getExtent())
+            // this.mapInstance.getView().fit(feature.getGeometry().getExtent())
     }
 
     addImageFeature(imageFeature) {
@@ -486,7 +603,7 @@ class MapInstance {
             let id = feature.id;
             for (let i = 0; i < layersArray.length; i++) {
                 if (layersArray[i].get('layerGroupId') === id) {
-                    layersArray[i].getLayers().forEach(function(layer, index, array){
+                    layersArray[i].getLayers().forEach(function(layer, index, array) {
                         layer.setVisible(visibility)
                     })
                 }

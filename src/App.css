@@ -1,3 +1,10 @@
 #map {
   height: 100%;
 }
+
+#features {
+	display: block;
+	height: 100px;
+	position: absolute;
+	padding-left: 50%;
+}

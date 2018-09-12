@@ -30,7 +30,7 @@ class MapAdapther extends Component {
         }
     }
 
-    render() {    
+    render() {
         return false
     }
 }

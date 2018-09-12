@@ -198,7 +198,7 @@ export const featuresData = [{
                     "id": 109,
                     "description": "Зелёный",
                     "min": 0.51,
-                    "max": 0.58
+                    "max": 0.586
                 }, {
                     "id": 3,
                     "description": "Красный",

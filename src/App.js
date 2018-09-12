@@ -22,7 +22,7 @@ class App extends Component {
   // 	(this.state.currentProjection === "EPSG:4326") ? this.setState({currentProjection: "EPSG:3857"}) : this.setState({currentProjection: "EPSG:4326"})
   // }
 
-  changeProjection = (event) => {0
+  changeProjection = (event) => {
     this.setState({currentProjection: event.target.value})
   }
 
@@ -36,7 +36,6 @@ class App extends Component {
     let newFeatures = this.state.features.slice()
     newFeatures[index].contour = !newFeatures[index].contour
     this.setState({features: newFeatures})
-
   }
 
   changeImageVisibility = (index, e) => {
@@ -62,8 +61,10 @@ class App extends Component {
         <select id="view-projection" onChange={this.changeProjection}>
           <option value="EPSG:3857">Spherical Mercator (EPSG:3857)</option>
           <option value="EPSG:4326">WGS 84 (EPSG:4326)</option>
-          <option value="EPSG:3413" disabled>NSIDC Polar Stereographic North (EPSG:3413)</option>
+          <option value="EPSG:3413">NSIDC Polar Stereographic North (EPSG:3413)</option>
         </select>
+
+        <div id="features"></div>
 
         <br/><br/>
         <button onClick={(e)=>this.changeLayerVisibility('xyz', e)}>XYZ слой</button>&nbsp;{String(this.state.layers['xyz'])}
@@ -78,6 +79,14 @@ class App extends Component {
             <button onClick={(e) => this.changeImageVisibility(index, e)}>изборажение: {name.image.toString()}</button>
           </div>
         ))}
+        <br/><br/>
+        <select id="type">
+          <option value="Point">Point</option>
+          <option value="LineString">LineString</option>
+          <option value="Polygon">Polygon</option>
+          <option value="Circle">Circle</option>
+          <option value="None">None</option>
+        </select>
       </div>
     );
   }
