@@ -41,30 +41,46 @@ import {
 } from './Polygons'
 
 class MapInstance {
-    constructor(mapProjection) {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+    constructor(mapProjection) {
 
         this.initializeProjections()
         this.initializeLayers()
 
         var layers = [];
 
-        var osmLayer = new TileLayer({
-            source: new OSM(),
-            name: 'osmLayer'
-        })
+        // var osmLayer = new TileLayer({
+        //     source: new OSM(),
+        //     name: 'osmLayer'
+        // })
 
-        layers.push(osmLayer)
+        // layers.push(osmLayer)
 
-        // let wmsLayer = this.createWMSLayer()
+        let wmsLayer = this.createWMSLayer()
         // layers.push(wmsLayer)
 
-        let wmtsLayer = this.createWMTSLayer();
-        let wmtsFeatureLayer = this.createWMTSFeatureLayer();
+        // let wmtsLayer = this.createWMTSLayer();
+        // let wmtsFeatureLayer = this.createWMTSFeatureLayer();
         // let vectorLayer = this.createVectorLayer();
 
-        layers.push(wmtsFeatureLayer);
-        layers.push(wmtsLayer);
+        layers.push(wmsLayer)
+
+        // layers.push(wmtsFeatureLayer);
+        // layers.push(wmtsLayer);
         // layers.push(vectorLayer);
+
+        // let layer_4326 = new TileLayer({
+        //     source: new TileWMS({
+        //         url: 'https://ahocevar.com/geoserver/wms',
+        //         crossOrigin: '',
+        //         params: {
+        //             'LAYERS': 'ne:NE1_HR_LC_SR_W_DR',
+        //             'TILED': true
+        //         },
+        //         projection: 'EPSG:4326'
+        //     })
+        // });
+
+        // layers.push(layer_4326)
 
         var parser = new WMTSCapabilities();
         var url = 'https://map1.vis.earthdata.nasa.gov/wmts-arctic/' +
@@ -90,7 +106,8 @@ class MapInstance {
 
         this.view = new View({
             projection: mapProjection,
-            center: [10000000, 9000000],
+            // center: [10000000, 9000000],
+            center: [0, 0],
             zoom: 4
         });
 
@@ -138,7 +155,7 @@ class MapInstance {
             }).then(function(features) {
                 features.forEach(function(feature) {
                     let featuresDiv = document.querySelector('#features')
-                    // let featureTag = document.createElement('div')
+                        // let featureTag = document.createElement('div')
                     let text = "id: " + feature['id']
                     let featureProperties = feature['properties']
                     for (var key in featureProperties) {
@@ -248,7 +265,7 @@ class MapInstance {
     }
 
     changeProjection(newProjection) {
-        let oldProjection = this.mapInstance.getView().getProjection().getCode()
+        // let oldProjection = this.mapInstance.getView().getProjection().getCode()
         var newProj = getProjection(newProjection);
         var newProjExtent = newProj.getExtent();
         var newView = new View({
@@ -258,7 +275,7 @@ class MapInstance {
             extent: newProjExtent || undefined
         });
         this.mapInstance.setView(newView);
-        this.transformVectorFeatures(oldProjection, newProjection);
+        // this.transformVectorFeatures(oldProjection, newProjection);
 
         //   layers['bng'].setExtent([-1057216, 6405988, 404315, 8759696]);
         // } else {
@@ -608,6 +625,25 @@ class MapInstance {
                     })
                 }
             }
+        }
+    }
+
+    switchPolarView(isPolar) {
+        var newProj = getProjection("EPSG:3413");
+        var newProjExtent = newProj.getExtent();
+        var newView = new View({
+            projection: newProj,
+            center: getCenter(newProjExtent || [0, 0, 0, 0]),
+            zoom: 0,
+            extent: newProjExtent || undefined
+        });
+
+
+        // // bngLayer.setExtent(undefined)
+        // // map.setView(newView);
+        if (isPolar) {
+            this.mapInstance.setView(newView)
+        //         // this.mapInstance.getLayers().setAt(0, bngLayer);
         }
     }
 }

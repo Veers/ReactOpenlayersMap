@@ -28,6 +28,10 @@ class MapAdapther extends Component {
         if (this.props.features !== prevProps.features) {
             this.map.updateFeatures(this.props.features)
         }
+
+        if (this.props.polarView !== prevProps.polarView) {
+            this.map.switchPolarView(this.props.polarView)
+        }
     }
 
     render() {
