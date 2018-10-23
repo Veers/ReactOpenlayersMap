@@ -8,8 +8,8 @@ class App extends Component {
   constructor(props) {
   	super(props)
   	this.state = {
-  		currentProjection: "EPSG:4326",
-  		layers: {'xyz': false, 'wms': false, 'wmts': false},
+  		currentProjection: "EPSG:3857",
+  		layers: {'xyz': false, 'wms': false, 'wmts': true},
       features: [{id: 10103911, 'contour': false, 'image': false}, {id: 10103996, 'contour': false, 'image': false}],
       featuresData: featuresData,
       isPolar: false
@@ -65,7 +65,7 @@ class App extends Component {
           featuresData={this.state.featuresData} polarView={this.state.isPolar}/>
         <br/>
         <label>View projection:</label>
-        <select id="view-projection" onChange={this.changeProjection} defaultValue={"EPSG:4326"}>
+        <select id="view-projection" onChange={this.changeProjection} defaultValue={"EPSG:3857"}>
           <option value="EPSG:3857">Spherical Mercator (EPSG:3857)</option>
           <option value="EPSG:4326">WGS 84 (EPSG:4326)</option>
           <option value="EPSG:3413">NSIDC Polar Stereographic North (EPSG:3413)</option>

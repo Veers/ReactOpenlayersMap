@@ -31,9 +31,7 @@ import WMTS, {
 import Static from 'ol/source/ImageStatic.js';
 import ImageLayer from 'ol/layer/Image.js';
 import LayerGroup from 'ol/layer/Group';
-import {
-    Style
-} from 'ol/style.js';
+import {Style} from 'ol/style.js';
 import proj4 from 'proj4';
 
 import {
@@ -48,25 +46,25 @@ class MapInstance {
 
         var layers = [];
 
-        // var osmLayer = new TileLayer({
-        //     source: new OSM(),
-        //     name: 'osmLayer'
-        // })
+        var osmLayer = new TileLayer({
+            source: new OSM(),
+            name: 'osmLayer'
+        })
 
-        // layers.push(osmLayer)
+        layers.push(osmLayer)
 
-        let wmsLayer = this.createWMSLayer()
+        // let wmsLayer = this.createWMSLayer()
         // layers.push(wmsLayer)
 
-        // let wmtsLayer = this.createWMTSLayer();
+        let wmtsLayer = this.createWMTSLayer();
         // let wmtsFeatureLayer = this.createWMTSFeatureLayer();
-        // let vectorLayer = this.createVectorLayer();
+        let vectorLayer = this.createVectorLayer();
 
-        layers.push(wmsLayer)
+        // layers.push(wmsLayer)
 
         // layers.push(wmtsFeatureLayer);
-        // layers.push(wmtsLayer);
-        // layers.push(vectorLayer);
+        layers.push(wmtsLayer);
+        layers.push(vectorLayer);
 
         // let layer_4326 = new TileLayer({
         //     source: new TileWMS({
@@ -439,21 +437,6 @@ class MapInstance {
     }
 
     createWMTSLayer() {
-
-        // http://tb-autotransforming.sec45.ccr.dep4.niitp:8080/geoserver/gwc/service/wmts?layer=cite%3Amosaic1&
-        // style=&tilematrixset=EPSG%3A900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fjpeg&
-        // TileMatrix=EPSG%3A900913%3A7&TileCol=94&TileRow=59
-
-        // http://tb-autotransforming.sec45.ccr.dep4.niitp:8080/geoserver/cite/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST
-        // =GetFeatureInfo&FORMAT=image%2Fgif&TRANSPARENT=true&QUERY_LAYERS=cite%3Amosaic1_metadata&STYLES&
-        // LAYERS=cite%3Amosaic1_metadata&INFO_FORMAT=text%2Fhtml&FEATURE_COUNT=50&X=50&
-        // Y=50&SRS=EPSG%3A3857&WIDTH=101&HEIGHT=101&BBOX=8028508.818591702%2C1045709.6087514443%2C9015580.505357085%2C2032781.2955168271
-
-
-        //EPSG%3A900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fjpeg&TileMatrix=EPSG%3A900913%3A6&TileCol=45&TileRow=29
-        //EPSG%3A900913&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fjpeg&TileMatrix=8&TileCol=185&TileRow=79
-
-
         let url = 'http://tb-autotransforming.sec45.ccr.dep4.niitp:8080/geoserver/gwc/service/wmts';
         let format = 'image/png';
         // let version = '1.0.0';
@@ -486,7 +469,15 @@ class MapInstance {
                     resolutions: resolutions,
                     matrixIds: matrixIds
                 }),
-                style: '',
+                // style: new Style({
+                //     stroke: new Stroke({
+                //         width: 3,
+                //         color: [255, 0, 0, 1]
+                //     }),
+                //     fill: new Fill({
+                //         color: [0, 0, 255, 0.6]
+                //     })
+                // }),
                 wrapX: true
             }),
             name: 'wmtsLayer'
@@ -498,6 +489,12 @@ class MapInstance {
         // VERSION=1.1.1&REQUEST=GetMap&FORMAT=image%2Fpng&TRANSPARENT=true&STYLES&LAYERS=cite%3Amosaic1_metadata&SRS=EPSG%3A3857&WIDTH=769&
         // HEIGHT=553&BBOX=5336050.900731673%2C-908887.790783966%2C20347358.929163635%2C9900035.82864686
 
+
+        // http://tb-autotransforming.sec45.ccr.dep4.niitp:8080/geoserver/cite/wms
+        // ?service=WMS&version=1.1.0&request=GetMap&layers=cite:mosaic1_metadata&
+        // styles=&bbox=8096176.35478691,1090673.23369829,1.75708210227368E7,7919673.46409706&width=768&height=553&
+        // srs=EPSG:3857&format=application/openlayers#toggle
+
         let url = 'http://tb-autotransforming.sec45.ccr.dep4.niitp:8080/geoserver/cite/wms';
         // let format = 'image/jpeg';
         // let version = '1.0.0';
@@ -507,10 +504,11 @@ class MapInstance {
             url: url,
             params: {
                 'LAYERS': 'cite:mosaic1_metadata',
-                'TILED': true
+                'TILED': true                
             },
-            serverType: 'geoserver',
-            crossOrigin: 'anonymous'
+
+            serverType: 'geoserver'
+,            crossOrigin: 'anonymous'
         });
 
         return new TileLayer({
@@ -537,7 +535,6 @@ class MapInstance {
                 layer.getSource().addFeature(feature);
             }
         })
-
     }
 
     transformVectorFeatures(oldProjection, newProjection) {
